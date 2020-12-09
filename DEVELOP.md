@@ -1,0 +1,25 @@
+## Develop stack
+- Login via Oauth
+- [ ] Integrate with google
+- [ ] Write document
+- Upload & manage images
+- [ ] Integrate python with [**Minio**](https://min.io/)
+- [ ] Install minio on local machine
+- [ ] Config connect to minio in k8s
+- Permission decorator
+- [ ] Write decorator permission for api
+- Manage staff with tree base
+- Cronjob with FastApi
+- [ ] Celery stack
+- [ ] FastApi cron
+- [ ] Config cron in k8s
+- Paginate with FastApi
+- [ ] Write paginator
+- Logging
+- [ ] Export logging to file in production mode 
+- [ ] Show logging in CMD in develop mode 
+- Testing wih Pytest
+- [ ] Config test/.env
+- [ ] Fake staff data with python Faker
+- Integrate testcase and testing proccess with [**Jira**](http://jira.teko.vn/)
+- Integrate git flow with [**Jira**](http://jira.teko.vn/)
