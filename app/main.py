@@ -2,9 +2,10 @@ import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from app.db.base_class import Base, engine
+from app.db.base_class import engine
 from app.core.config import settings
 from app.api.api import router
+from app.models.base_model import Base
 
 Base.metadata.create_all(bind=engine)
 

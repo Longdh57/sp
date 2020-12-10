@@ -1,4 +1,4 @@
-from app.db.base_class import BareBaseModel
+from app.models.base_model import BareBaseModel
 from sqlalchemy import Column, String, Integer
 
 from app.helpers.enums import StaffStatus
