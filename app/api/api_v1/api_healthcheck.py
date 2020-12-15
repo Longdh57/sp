@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.schema.base import ResponseSchemaBase
+from app.schemas.base import ResponseSchemaBase
 
 router = APIRouter()
 

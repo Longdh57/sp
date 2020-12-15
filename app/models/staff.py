@@ -3,7 +3,6 @@ from sqlalchemy import Column, String, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from app.helpers.enums import StaffStatus
-from .team import Team
 
 
 class Staff(BareBaseModel):
@@ -14,8 +13,7 @@ class Staff(BareBaseModel):
     status = Column(Integer, default=StaffStatus.ACTIVE.value)
     is_superuser = Column(Boolean(), default=False)
 
-    team_id = Column(Integer, ForeignKey("team.id"))
-    team = relationship("Team", back_populates="members")
+    teams = relationship("Team", secondary='staffteam')
 
     parent_id = Column(Integer, ForeignKey("staff.id"))
     parent = relationship("Staff", remote_side='Staff.id')

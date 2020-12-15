@@ -12,4 +12,4 @@ class Team(BareBaseModel):
     type = Column(Integer, default=TeamType.TEAM_SALE.value)
     description = Column(String(200))
 
-    members = relationship("Staff", back_populates="team")
+    members = relationship("Staff", secondary="staffteam")

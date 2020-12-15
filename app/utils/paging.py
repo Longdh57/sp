@@ -5,7 +5,7 @@ from typing import Optional, Generic, Sequence, Type, TypeVar
 from sqlalchemy.orm import Query
 from pydantic.generics import GenericModel
 from contextvars import ContextVar
-from app.schema.base import ResponseSchemaBase, MetadataSchema
+from app.schemas.base import ResponseSchemaBase, MetadataSchema
 
 
 T = TypeVar("T")

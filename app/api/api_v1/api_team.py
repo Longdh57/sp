@@ -8,8 +8,8 @@ from sqlalchemy import desc, asc
 from sqlalchemy.orm import aliased
 
 from app.models.team import Team
-from app.schema.team import TeamRequest, TeamResponse
-from app.schema.base import ResponseSchemaBase
+from app.schemas.team import TeamRequest, TeamResponse
+from app.schemas.base import ResponseSchemaBase
 from app.utils.paging import PaginationParams, paginate, Page
 
 router = APIRouter()

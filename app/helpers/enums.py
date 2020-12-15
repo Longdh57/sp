@@ -10,3 +10,8 @@ class TeamType(int, enum.Enum):
     TEAM_SALE = 0
     TEAM_CHAIN = 1
     TEAM_SCC = 2
+
+
+class TeamRole(int, enum.Enum):
+    MEMBER = 0
+    LEADER = 1
