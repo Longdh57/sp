@@ -20,5 +20,4 @@ class StaffRequest(BaseModel):
     full_name: str
     email: str
     mobile: str
-    department_code: str
     is_superuser: bool = False

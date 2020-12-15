@@ -10,6 +10,7 @@ from sqlalchemy.orm import aliased
 from app.models.staff import Staff
 from app.schema.staff import StaffResponse, StaffRequest
 from app.schema.base import ResponseSchemaBase
+from app.helpers.enums import StaffStatus
 from app.utils.paging import PaginationParams, paginate, Page
 
 router = APIRouter()
@@ -19,7 +20,6 @@ logger = logging.getLogger()
 
 @router.get("/", response_model=Page[StaffResponse])
 def get_staffs(params: PaginationParams = Depends()) -> Any:
-    logger.info("get list users api")
     try:
         result = paginate(db.session.query(Staff), params)
         return result
@@ -39,18 +39,17 @@ def get_staff(staff_id: int):
 @router.post("/", response_model=StaffResponse)
 def create_staff(staff: StaffRequest):
     try:
-        db_staff = Staff(
+        staff_db = Staff(
             staff_code=staff.staff_code,
             full_name=staff.full_name,
             email=staff.email,
             mobile=staff.mobile,
-            department_code=staff.department_code,
             is_superuser=staff.is_superuser,
-            status=Status.ACTIVE
+            status=StaffStatus.ACTIVE
         )
-        db.session.add(db_staff)
+        db.session.add(staff_db)
         db.session.commit()
-        return db_staff
+        return staff_db
     except Exception as e:
         logger.info(e)
 
@@ -59,12 +58,13 @@ def create_staff(staff: StaffRequest):
 def update_staff(staff_id: int, staff: StaffRequest):
     try:
         staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
+        if not staff_db:
+            return None
 
         staff_db.staff_code = staff.staff_code
         staff_db.full_name = staff.full_name
         staff_db.email = staff.email
         staff_db.mobile = staff.mobile
-        staff_db.department_code = staff.department_code
         staff_db.is_superuser = staff.is_superuser
 
         db.session.commit()
@@ -74,7 +74,7 @@ def update_staff(staff_id: int, staff: StaffRequest):
 
 
 @router.put("/set-parent/{staff_id}", response_model=ResponseSchemaBase)
-def update_staff(staff_id: int, parent_id: int):
+def update_staff_parent(staff_id: int, parent_id: int):
     try:
         staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
         if not staff_db:
@@ -86,13 +86,13 @@ def update_staff(staff_id: int, parent_id: int):
 
         staff_db.parent = parent_db
         db.session.commit()
-        return ResponseSchemaBase.success_response()
+        return ResponseSchemaBase().success_response()
     except Exception as e:
         logger.info(e)
 
 
-@router.get("/get-users-under/{staff_id}", response_model=List[StaffResponse])
-def update_staff(staff_id: int):
+@router.get("/get-staff-child/{staff_id}", response_model=List[StaffResponse])
+def get_staff_child(staff_id: int):
     try:
         staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
         if not staff_db:

@@ -14,17 +14,21 @@ class ResponseSchemaBase(BaseModel):
         self.code = code
         self.success = success
         self.message = message
+        return self
 
-    def success_response(self, message: str):
+    def success_response(self):
         self.message = 'success'
+        return self
 
     def fail_response(self, code: int, message: str):
         self.code = code
         self.message = message
+        return self
 
     def create_success_response(self):
         self.code = 201
         self.message = 'Create successful'
+        return self
 
 
 class MetadataSchema(BaseModel):
