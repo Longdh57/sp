@@ -1,7 +1,10 @@
+import sys
 import uvicorn
 from fastapi import FastAPI
+from fastapi_sqlalchemy import DBSessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
+sys.path = ['', '..'] + sys.path[1:]
 from app.db.base_class import engine
 from app.core.config import settings
 from app.api.api import router
@@ -19,7 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(DBSessionMiddleware, db_url=settings.DATABASE_URL)
 app.include_router(router, prefix=settings.API_PREFIX)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
