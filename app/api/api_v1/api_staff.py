@@ -7,11 +7,12 @@ from fastapi_sqlalchemy import db
 from sqlalchemy import desc, asc
 from sqlalchemy.orm import aliased
 
+from app.models import StaffTeam
 from app.models.staff import Staff
 from app.schemas.staff import StaffResponse, StaffRequest
 from app.models.team import Team
 from app.schemas.base import ResponseSchemaBase
-from app.helpers.enums import StaffStatus
+from app.helpers.enums import StaffStatus, TeamRole
 from app.utils.paging import PaginationParams, paginate, Page
 
 router = APIRouter()
@@ -90,6 +91,7 @@ def update_staff_parent(staff_id: int, parent_id: int):
         return ResponseSchemaBase().success_response()
     except Exception as e:
         logger.info(e)
+        return ResponseSchemaBase().fail_response(500, "Có lỗi xảy ra!")
 
 
 @router.get("/get-staff-child/{staff_id}", response_model=List[StaffResponse])
@@ -129,93 +131,32 @@ def get_staff_child(staff_id: int):
 def add_staff_to_team(staff_id: int, team_id: int):
     try:
 
-        staff = db.session.query(Staff).filter(id=staff_id).first()
+        staff = db.session.query(Staff).filter_by(id=staff_id).first()
         if staff is None:
             return None
-        team = db.session.query(Team).filter(id=staff_id).first()
+        team = db.session.query(Team).filter_by(id=staff_id).first()
         if team is None:
             return None
 
-        role = StaffTeamRoleType.TEAM_STAFF
+        role = TeamRole.MEMBER
 
-        # gan staff vao team moi
-        if request.method == 'POST':
-            if staff.team is not None:
-                message = 'Staff đã thuộc team này từ trước'
-                if staff.team.id != team.id:
-                    message = 'Staff đang thuộc 1 Team khác'
-                return custom_response(Code.BAD_REQUEST, message)
-            else:
-                staff.team = team
-                staff.role = role
-                staff.save(
-                    staff_id=staff.id,
-                    team_id=team.id,
-                    team_code=team.code,
-                    role=role,
-                    log_type=StaffLogType.JOIN_TEAM,
-                    description='Change_staff_team: add new team',
-                    user=request.user
-                )
-        # Thay doi team cho staff da duoc gan team
-        if request.method == 'PUT':
-            if staff.team is None or staff.team.id == team.id:
-                message = 'Staff đã thuộc team này từ trước'
-                if staff.team is None:
-                    message = 'Staff đang không thuộc team nào, không thể chuyển Team'
-                return custom_response(Code.BAD_REQUEST, message)
-            else:
-                old_team = staff.team
+        # check xem neu chua co team thi add vao team
 
-                staff.team = team
-                staff.role = role
-                staff.save(
-                    staff_id=staff.id,
-                    old_team_id=old_team.id,
-                    old_team_code=old_team.code,
-                    team_id=team.id,
-                    team_code=team.code,
-                    role=role,
-                    log_type=StaffLogType.OUT_TEAM,
-                    description='Change_staff_team: out and join other team',
-                    user=request.user
-                )
-                StaffCare.objects.filter(staff=staff).delete()
-                StaffCareLog.objects.filter(staff=staff, is_caring=True).update(
-                    is_caring=False,
-                    updated_by=request.user,
-                    updated_date=datetime.now(),
-                )
+        staff_teams = db.session.query(StaffTeam).filter_by(staff_id=staff_id).all()
 
-        if request.method == 'DELETE':
-            if staff.team is None or staff.team.id != team.id:
-                message = 'Staff không thuộc team hiện tại'
-                if staff.team is None:
-                    message = 'Staff đang không thuộc team nào, không thể xóa Team'
-                return custom_response(Code.BAD_REQUEST, message)
-            else:
-                staff.team = None
-                staff.role = StaffTeamRoleType.FREELANCE_STAFF
-                staff.save(
-                    staff_id=staff.id,
-                    team_id=team.id,
-                    team_code=team.code,
-                    role=StaffTeamRoleType.FREELANCE_STAFF,
-                    log_type=StaffLogType.OUT_TEAM,
-                    description='Change_staff_team: out team',
-                    user=request.user
-                )
-                StaffCare.objects.filter(staff=staff).delete()
-                StaffCareLog.objects.filter(staff=staff, is_caring=True).update(
-                    is_caring=False,
-                    updated_by=request.user,
-                    updated_date=datetime.now(),
-                )
+        if not staff_teams:
+            staff_team_db = StaffTeam(
+                team_id=team_id,
+                staff_id=staff_id,
+                role=role
+            )
+            db.session.add(staff_team_db)
+            db.session.commit()
+            return ResponseSchemaBase().success_response()
+        else:
+            return ResponseSchemaBase().fail_response(400, "Staff đã có team")
 
-        update_role_for_staff([staff_id], ROLE_SALE)
-
-        return successful_response()
     except Exception as e:
-        logging.error('Update team for staff exception: %s', e)
-        return custom_response(Code.INTERNAL_SERVER_ERROR)
+        logging.error('Add staff to team exception: %s', e)
+        return ResponseSchemaBase().fail_response(500, "Có lỗi xảy ra!")
 
