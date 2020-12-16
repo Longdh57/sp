@@ -71,7 +71,6 @@ def paginate(query: Query, params: Optional[PaginationParams] = None) -> BasePag
             next_page=None if params.page + 1 >= total_page else params.page + 1,
             previous_page=None if params.page <= 0 else params.page - 1,
             total_pages=total_page
-            # last_page=total_page - 1 if total_page > 0 else 0
         )
 
     except Exception as e:

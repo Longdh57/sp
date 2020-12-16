@@ -4,15 +4,19 @@ from fastapi import FastAPI
 from fastapi_sqlalchemy import DBSessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
-sys.path = ['', '..'] + sys.path[1:]
 from app.db.base_class import engine
 from app.core.config import settings
 from app.api.api import router
 from app.models.base_model import Base
 
 Base.metadata.create_all(bind=engine)
+sys.path = ['', '..'] + sys.path[1:]
 
-app = FastAPI(title=settings.PROJECT_NAME, openapi_url=f"{settings.API_PREFIX}/openapi.json")
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_PREFIX}/openapi.json",
+    docs_url=f"{settings.API_PREFIX}/docs"
+)
 
 app.add_middleware(
     CORSMiddleware,
