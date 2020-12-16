@@ -49,3 +49,8 @@ class UserService(object):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         return user
+
+    def get_current_active_user(self, current_user: User = Depends(get_current_user)) -> User:
+        if not current_user.is_active:
+            raise HTTPException(status_code=400, detail="Inactive user")
+        return current_user
