@@ -41,8 +41,6 @@ $ docker run -d -p 8000:8000 sale-service:latest
 - Authorization
 - [ ] Mapping user-staff
 - [ ] Auto grant permission for staff
-- [ ] CRUD Team
-- [ ] Add team-staff
 - Mapping staff-shop
 - [ ] Import staff-shop
 - [ ] List shop with staff

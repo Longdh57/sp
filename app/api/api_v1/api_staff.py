@@ -7,12 +7,10 @@ from fastapi_sqlalchemy import db
 from sqlalchemy import desc, asc
 from sqlalchemy.orm import aliased
 
-from app.models import StaffTeam
 from app.models.staff import Staff
 from app.schemas.staff import StaffResponse, StaffRequest
-from app.models.team import Team
 from app.schemas.base import ResponseSchemaBase
-from app.helpers.enums import StaffStatus, TeamRole
+# from app.helpers.enums import StaffStatus
 from app.utils.paging import PaginationParams, paginate, Page
 
 router = APIRouter()
@@ -26,7 +24,6 @@ def get_staffs(params: PaginationParams = Depends()) -> Any:
         result = paginate(db.session.query(Staff), params)
         return result
     except Exception as e:
-        logger.info("error happen")
         logger.error(e)
 
 
@@ -38,22 +35,22 @@ def get_staff(staff_id: int):
         logger.info(e)
 
 
-@router.post("/", response_model=StaffResponse)
-def create_staff(staff: StaffRequest):
-    try:
-        staff_db = Staff(
-            staff_code=staff.staff_code,
-            full_name=staff.full_name,
-            email=staff.email,
-            mobile=staff.mobile,
-            is_superuser=staff.is_superuser,
-            status=StaffStatus.ACTIVE
-        )
-        db.session.add(staff_db)
-        db.session.commit()
-        return staff_db
-    except Exception as e:
-        logger.info(e)
+# @router.post("/", response_model=StaffResponse)
+# def create_staff(staff: StaffRequest):
+#     try:
+#         staff_db = Staff(
+#             staff_code=staff.staff_code,
+#             full_name=staff.full_name,
+#             email=staff.email,
+#             mobile=staff.mobile,
+#             is_superuser=staff.is_superuser,
+#             status=StaffStatus.ACTIVE
+#         )
+#         db.session.add(staff_db)
+#         db.session.commit()
+#         return staff_db
+#     except Exception as e:
+#         logger.info(e)
 
 
 @router.put("/{staff_id}", response_model=StaffResponse)
@@ -61,13 +58,10 @@ def update_staff(staff_id: int, staff: StaffRequest):
     try:
         staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
         if not staff_db:
-            return None
+            return ResponseSchemaBase().fail_response(404, "Không tìm thấy nhân viên!")
 
-        staff_db.staff_code = staff.staff_code
-        staff_db.full_name = staff.full_name
-        staff_db.email = staff.email
-        staff_db.mobile = staff.mobile
-        staff_db.is_superuser = staff.is_superuser
+        staff_db.status = staff.status
+        staff_db.alias = staff.alias
 
         db.session.commit()
         return staff_db
@@ -75,16 +69,16 @@ def update_staff(staff_id: int, staff: StaffRequest):
         logger.info(e)
 
 
-@router.put("/set-parent/{staff_id}/{parent_id}", response_model=ResponseSchemaBase)
+@router.put("/{staff_id}/set-parent/{parent_id}", response_model=ResponseSchemaBase)
 def update_staff_parent(staff_id: int, parent_id: int):
     try:
         staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
         if not staff_db:
-            return None
+            return ResponseSchemaBase().fail_response(404, "Không tìm thấy nhân viên!")
 
         parent_db = db.session.query(Staff).filter_by(id=parent_id).first()
         if not parent_db:
-            return None
+            return ResponseSchemaBase().fail_response(404, "Không tìm thấy nhân viên cấp trên !")
 
         staff_db.parent = parent_db
         db.session.commit()
@@ -94,7 +88,32 @@ def update_staff_parent(staff_id: int, parent_id: int):
         return ResponseSchemaBase().fail_response(500, "Có lỗi xảy ra!")
 
 
-@router.get("/get-staff-child/{staff_id}", response_model=List[StaffResponse])
+@router.put("/{staff_id}/set-staff-child", response_model=ResponseSchemaBase)
+def update_staff_parent(staff_child_ids: List[int], staff_id: int):
+    try:
+        staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
+        if not staff_db:
+            return ResponseSchemaBase().fail_response(404, "Không tìm thấy nhân viên!")
+
+        if not staff_child_ids:
+            return ResponseSchemaBase().fail_response(400, "Danh sách nhân viên cấp dưới không được rỗng!")
+
+        childs_db = db.session.query(Staff).filter(Staff.id.in_(staff_child_ids))
+        if childs_db.count() != len(staff_child_ids):
+            return ResponseSchemaBase().fail_response(404, "Không tìm thấy 1 hoặc nhiều nhân viên cấp dưới!")
+
+        childs_db.update(
+            {Staff.parent_id: staff_id},
+            synchronize_session=False
+        )
+        db.session.commit()
+        return ResponseSchemaBase().success_response()
+    except Exception as e:
+        logger.info(e)
+        return ResponseSchemaBase().fail_response(500, "Có lỗi xảy ra!")
+
+
+@router.get("/{staff_id}/get-staff-child", response_model=List[StaffResponse])
 def get_staff_child(staff_id: int):
     try:
         staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
@@ -125,38 +144,4 @@ def get_staff_child(staff_id: int):
         return staffs
     except Exception as e:
         logger.info(e)
-
-
-@router.post("/{staff_id}/{team_id}", response_model=ResponseSchemaBase)
-def add_staff_to_team(staff_id: int, team_id: int):
-    try:
-
-        staff = db.session.query(Staff).filter_by(id=staff_id).first()
-        if staff is None:
-            return None
-        team = db.session.query(Team).filter_by(id=staff_id).first()
-        if team is None:
-            return None
-
-        role = TeamRole.MEMBER
-
-        # check xem neu chua co team thi add vao team
-
-        staff_teams = db.session.query(StaffTeam).filter_by(staff_id=staff_id).all()
-
-        if not staff_teams:
-            staff_team_db = StaffTeam(
-                team_id=team_id,
-                staff_id=staff_id,
-                role=role
-            )
-            db.session.add(staff_team_db)
-            db.session.commit()
-            return ResponseSchemaBase().success_response()
-        else:
-            return ResponseSchemaBase().fail_response(400, "Staff đã có team")
-
-    except Exception as e:
-        logging.error('Add staff to team exception: %s', e)
-        return ResponseSchemaBase().fail_response(500, "Có lỗi xảy ra!")
 
