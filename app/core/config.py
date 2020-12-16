@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
     DATABASE_URL = os.getenv('SQL_DATABASE_URL', '')
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    SECURITY_ALGORITHM = 'HS256'
 
 
 settings = Settings()
