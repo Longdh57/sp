@@ -13,11 +13,12 @@ def get_list(text):
 
 
 class Settings(BaseSettings):
-    API_PREFIX = '/api/v1'
+    API_PREFIX = '/sale-service'
     PROJECT_NAME = os.getenv('PROJECT_NAME', 'Sale Service')
     SECRET_KEY = os.getenv('SECRET_KEY', '')
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
     DATABASE_URL = os.getenv('SQL_DATABASE_URL', '')
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 
 
 settings = Settings()

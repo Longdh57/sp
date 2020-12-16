@@ -4,13 +4,12 @@ from typing import Any, List
 
 from fastapi import APIRouter
 from fastapi_sqlalchemy import db
-from sqlalchemy import desc, asc
+from sqlalchemy import asc
 from sqlalchemy.orm import aliased
 
 from app.models.staff import Staff
 from app.schemas.staff import StaffResponse, StaffRequest
 from app.schemas.base import ResponseSchemaBase
-# from app.helpers.enums import StaffStatus
 from app.utils.paging import PaginationParams, paginate, Page
 
 router = APIRouter()
@@ -33,24 +32,6 @@ def get_staff(staff_id: int):
         return db.session.query(Staff).filter_by(id=staff_id).first()
     except Exception as e:
         logger.info(e)
-
-
-# @router.post("/", response_model=StaffResponse)
-# def create_staff(staff: StaffRequest):
-#     try:
-#         staff_db = Staff(
-#             staff_code=staff.staff_code,
-#             full_name=staff.full_name,
-#             email=staff.email,
-#             mobile=staff.mobile,
-#             is_superuser=staff.is_superuser,
-#             status=StaffStatus.ACTIVE
-#         )
-#         db.session.add(staff_db)
-#         db.session.commit()
-#         return staff_db
-#     except Exception as e:
-#         logger.info(e)
 
 
 @router.put("/{staff_id}", response_model=StaffResponse)
@@ -138,7 +119,6 @@ def get_staff_child(staff_id: int):
             [(staff_id,)] + db.session.query(included.c.id).distinct().all(),
         )
 
-        # staffs = db.session.query(Staff).filter(Staff.id.in_(staff_ids)).order_by(desc(Staff.id)).all()
         staffs = db.session.query(Staff).filter(Staff.id.in_(staff_ids)).order_by(asc(Staff.id)).all()
 
         return staffs
