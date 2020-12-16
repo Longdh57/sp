@@ -1,6 +1,9 @@
-from typing import Optional
+from typing import Optional, TypeVar, Generic, Sequence
+from pydantic.generics import GenericModel
 
 from pydantic import BaseModel
+
+T = TypeVar("T")
 
 
 class ResponseSchemaBase(BaseModel):
@@ -28,6 +31,31 @@ class ResponseSchemaBase(BaseModel):
     def create_success_response(self):
         self.code = 201
         self.message = 'Create successful'
+        return self
+
+
+class DataResponse(ResponseSchemaBase, GenericModel, Generic[T]):
+    data: Optional[T] = None
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def custom_response(self, code: int, success: bool, message: str, data: T):
+        self.code = code
+        self.success = success
+        self.message = message
+        self.data = data
+        return self
+
+    def success_response(self, data: Sequence[T]):
+        self.message = 'success'
+        self.data = data
+        return self
+
+    def fail_response(self, code: int, message: str):
+        self.code = code
+        self.message = message
+        self.data = None
         return self
 
 
