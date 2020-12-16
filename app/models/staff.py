@@ -11,9 +11,8 @@ class Staff(BareBaseModel):
     email = Column(String(200), unique=True, index=True)
     mobile = Column(String(200))
     status = Column(Integer, default=StaffStatus.ACTIVE.value)
+    alias = Column(String(200))
     is_superuser = Column(Boolean(), default=False)
-
-    teams = relationship("Team", secondary='staffteam')
 
     parent_id = Column(Integer, ForeignKey("staff.id"))
     parent = relationship("Staff", remote_side='Staff.id')
