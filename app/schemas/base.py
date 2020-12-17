@@ -1,4 +1,4 @@
-from typing import Optional, TypeVar, Generic, Sequence
+from typing import Optional, TypeVar, Generic
 from pydantic.generics import GenericModel
 
 from pydantic import BaseModel
@@ -47,7 +47,7 @@ class DataResponse(ResponseSchemaBase, GenericModel, Generic[T]):
         self.data = data
         return self
 
-    def success_response(self, data: Sequence[T]):
+    def success_response(self, data: T):
         self.message = 'success'
         self.data = data
         return self

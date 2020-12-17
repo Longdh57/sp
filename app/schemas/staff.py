@@ -1,6 +1,5 @@
-import pydantic
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 
 class StaffResponse(BaseModel):
@@ -13,8 +12,12 @@ class StaffResponse(BaseModel):
     alias: Optional[str] = None
 
     class Config:
-        extra = pydantic.Extra.allow
         orm_mode = True
+
+
+class StaffTreeResponse(StaffResponse):
+    parent_id: Optional[int] = None
+    children: Optional[List] = []
 
 
 class StaffRequest(BaseModel):
