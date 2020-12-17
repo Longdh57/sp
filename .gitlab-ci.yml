@@ -1,0 +1,50 @@
+stages:
+  - testing
+  - develop
+  - test
+  - stage
+
+.testing:
+  stage: testing
+  before_script:
+    - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+    - eval $(ssh-agent -s)
+    - echo "{$SSH_PRIVATE_KEY}"
+    - echo "$CI_ENVIRONMENT_NAME"
+
+.build:
+  before_script:
+    - echo "$SSH_PRIVATE_KEY"
+
+testing:
+  extends: .testing
+  script:
+    - echo "${CONFIGS_TESTING}"
+  allow_failure: false
+
+deploy:develop:
+  stage: develop
+  extends: .build
+  environment:
+    name: develop
+  allow_failure: false
+  only:
+    - develop
+
+deploy:test:
+  stage: test
+  extends: .build
+  environment:
+    name: test
+  allow_failure: false
+  only:
+    - test
+
+deploy:stage:
+  stage: stage
+  extends: .build
+  environment:
+    name: stage
+  allow_failure: false
+  only:
+    - stage
