@@ -21,5 +21,5 @@ class StaffTreeResponse(StaffResponse):
 
 
 class StaffRequest(BaseModel):
-    status: int = 1
+    status: int
     alias: str
