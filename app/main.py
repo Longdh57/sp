@@ -3,14 +3,17 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi_sqlalchemy import DBSessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException
 
+sys.path = ['', '..'] + sys.path[1:]
 from app.db.base_class import engine
 from app.core.config import settings
 from app.api.api import router
 from app.models.base_model import Base
+from app.utils.exception_handler import SaleServiceException, sale_service_exception_handler, http_exception_handler, validation_exception_handler, fastapi_error_handler
 
 Base.metadata.create_all(bind=engine)
-sys.path = ['', '..'] + sys.path[1:]
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -28,6 +31,10 @@ app.add_middleware(
 
 app.add_middleware(DBSessionMiddleware, db_url=settings.DATABASE_URL)
 app.include_router(router, prefix=settings.API_PREFIX)
+app.add_exception_handler(SaleServiceException, sale_service_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, fastapi_error_handler)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)

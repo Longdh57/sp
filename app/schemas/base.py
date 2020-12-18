@@ -25,6 +25,7 @@ class ResponseSchemaBase(BaseModel):
 
     def fail_response(self, code: int, message: str):
         self.code = code
+        self.success = False
         self.message = message
         return self
 
@@ -54,6 +55,7 @@ class DataResponse(ResponseSchemaBase, GenericModel, Generic[T]):
 
     def fail_response(self, code: int, message: str):
         self.code = code
+        self.success = False
         self.message = message
         self.data = None
         return self
