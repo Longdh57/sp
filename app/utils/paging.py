@@ -2,11 +2,15 @@ import logging
 from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
 from typing import Optional, Generic, Sequence, Type, TypeVar
+
+from sqlalchemy import asc, desc
 from sqlalchemy.orm import Query
 from pydantic.generics import GenericModel
 from contextvars import ContextVar
-from app.schemas.base import ResponseSchemaBase, MetadataSchema
 
+from app.models import Staff
+from app.schemas.base import ResponseSchemaBase, MetadataSchema
+from app.utils.exception_handler import SaleServiceException
 
 T = TypeVar("T")
 C = TypeVar("C")
@@ -61,7 +65,13 @@ def paginate(query: Query, params: Optional[PaginationParams] = None) -> BasePag
 
     try:
         total = query.count()
-        items = query.limit(params.size).offset(params.size*params.page).all()
+        if params.direction:
+            direction = desc if params.direction == 'desc' else asc
+            items = query.order_by(direction(getattr(Staff, params.sort_by))) \
+                .limit(params.size).offset(params.size * params.page)\
+                .all()
+        else:
+            items = query.limit(params.size).offset(params.size * params.page).all()
 
         total_page = total // params.size + 1 if total % params.size != 0 else total // params.size
         metadata = MetadataSchema(
@@ -74,12 +84,6 @@ def paginate(query: Query, params: Optional[PaginationParams] = None) -> BasePag
         )
 
     except Exception as e:
-        code = 500
-        success = False
-        message = str(e)
-        items = None
-        total = 0
-        metadata = None
-        logger.error("Error when execute query: {}".format(e))
+        raise SaleServiceException(code=500, message=str(e))
 
     return PageType.get().create(code, success, message, total, items, metadata)

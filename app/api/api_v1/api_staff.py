@@ -10,6 +10,7 @@ from sqlalchemy.orm import aliased
 from app.models.staff import Staff
 from app.schemas.staff import StaffResponse, StaffRequest, StaffTreeResponse
 from app.schemas.base import ResponseSchemaBase, DataResponse
+from app.utils.exception_handler import SaleServiceException
 from app.utils.paging import PaginationParams, paginate, Page
 from pydantic import parse_obj_as
 
@@ -19,8 +20,18 @@ logger = logging.getLogger()
 
 
 @router.get("/", response_model=Page[StaffResponse])
-def get_staffs(params: PaginationParams = Depends()) -> Any:
-    return paginate(db.session.query(Staff), params)
+def get_staffs(params: PaginationParams = Depends(), email: str = None, phone: str = None, status: int = None) -> Any:
+    query = db.session.query(Staff)
+    if email:
+        query = query.filter(Staff.email.like("%{}%".format(email)))
+    if phone:
+        query = query.filter(Staff.mobile.like("%{}%".format(phone)))
+    if status:
+        if status != -1 and status != 1:
+            raise SaleServiceException(code=400, message="Status không hợp lệ!")
+        else:
+            query = query.filter(Staff.status == status)
+    return paginate(query, params)
 
 
 @router.get("/staff-tree", response_model=DataResponse[List[StaffTreeResponse]])

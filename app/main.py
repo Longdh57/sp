@@ -15,26 +15,33 @@ from app.utils.exception_handler import SaleServiceException, sale_service_excep
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_PREFIX}/openapi.json",
-    docs_url=f"{settings.API_PREFIX}/docs"
-)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+def get_application() -> FastAPI:
+    application = FastAPI(
+        title=settings.PROJECT_NAME,
+        openapi_url=f"{settings.API_PREFIX}/openapi.json",
+        docs_url=f"{settings.API_PREFIX}/docs"
+    )
 
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    application.include_router(router, prefix=settings.API_PREFIX)
+    application.add_exception_handler(SaleServiceException, sale_service_exception_handler)
+    application.add_exception_handler(HTTPException, http_exception_handler)
+    application.add_exception_handler(RequestValidationError, validation_exception_handler)
+    application.add_exception_handler(Exception, fastapi_error_handler)
+
+    return application
+
+
+app = get_application()
 app.add_middleware(DBSessionMiddleware, db_url=settings.DATABASE_URL)
-app.include_router(router, prefix=settings.API_PREFIX)
-app.add_exception_handler(SaleServiceException, sale_service_exception_handler)
-app.add_exception_handler(HTTPException, http_exception_handler)
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(Exception, fastapi_error_handler)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
