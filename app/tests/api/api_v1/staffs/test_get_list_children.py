@@ -95,6 +95,7 @@ class TestStaff(APITestCase):
 
     def test_get_staff_tree(self, client: TestClient):
         """
+            Test api get toàn bộ cây phân quyền staff
             Step by step:
             - Khởi tạo data mẫu gồm 8 nhân viên
                 . {'id'= 1, 'staff_code': 'TEKO_01', 'full_name': 'Đinh Huy Bình', 'email': 'binh.dh@teko.vn', 'mobile': '0376752238', 'status': 1, 'alias': 'binh.dh', 'parent_id': null}
@@ -161,6 +162,7 @@ class TestStaff(APITestCase):
 
     def test_get_staff_not_found(self, client: TestClient):
         """
+            Test get cây phân quyền staff với id không hợp lệ
             Step by step:
             - Khởi tạo data mẫu gồm 8 nhân viên
                 . {'id'= 1, 'staff_code': 'TEKO_01', 'full_name': 'Đinh Huy Bình', 'email': 'binh.dh@teko.vn', 'mobile': '0376752238', 'status': 1, 'alias': 'binh.dh', 'parent_id': null}
@@ -184,6 +186,7 @@ class TestStaff(APITestCase):
 
     def test_get_node(self, client: TestClient):
         """
+            Test get cây phân quyền staff với một node
             Step by step:
             - Khởi tạo data mẫu gồm 8 nhân viên
                 . {'id'= 1, 'staff_code': 'TEKO_01', 'full_name': 'Đinh Huy Bình', 'email': 'binh.dh@teko.vn', 'mobile': '0376752238', 'status': 1, 'alias': 'binh.dh', 'parent_id': null}
@@ -222,6 +225,7 @@ class TestStaff(APITestCase):
 
     def test_get_node_leaf(self, client: TestClient):
         """
+            Test get cây phân quyền staff với một node lá
             Step by step:
             - Khởi tạo data mẫu gồm 8 nhân viên
                 . {'id'= 1, 'staff_code': 'TEKO_01', 'full_name': 'Đinh Huy Bình', 'email': 'binh.dh@teko.vn', 'mobile': '0376752238', 'status': 1, 'alias': 'binh.dh', 'parent_id': null}
