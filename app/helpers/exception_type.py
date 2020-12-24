@@ -3,8 +3,8 @@ import enum
 
 class ExceptionType(enum.Enum):
 
-    SaleNotFound = 404, '404', 'Sale not found!'
-    StaffStatusInvalid = 400, '400', 'Trạng thái nhân viên không hợp lệ'
+    SALE_NOT_FOUND = 404, '404', 'Không tìm thấy nhân viên'
+    STAFF_STATUS_INVALID = 400, '400', 'Trạng thái nhân viên không hợp lệ'
 
     def __new__(cls, *args, **kwds):
         value = len(cls.__members__) + 1

@@ -7,6 +7,7 @@ from fastapi_sqlalchemy import db
 from sqlalchemy import asc
 from sqlalchemy.orm import aliased
 
+from app.helpers.exception_type import ExceptionType
 from app.models.staff import Staff
 from app.schemas.staff import StaffResponse, StaffRequest, StaffTreeResponse
 from app.schemas.base import ResponseSchemaBase, DataResponse
@@ -28,7 +29,7 @@ def get_staffs(params: PaginationParams = Depends(), email: str = None, phone: s
         query = query.filter(Staff.mobile.like("%{}%".format(phone)))
     if status:
         if status != -1 and status != 1:
-            raise SaleServiceException(code=400, message="Status không hợp lệ!")
+            raise SaleServiceException(ExceptionType.STAFF_STATUS_INVALID)
         else:
             query = query.filter(Staff.status == status)
     return paginate(query, params)
@@ -36,26 +37,17 @@ def get_staffs(params: PaginationParams = Depends(), email: str = None, phone: s
 
 @router.get("/staff-tree", response_model=DataResponse[List[StaffTreeResponse]])
 def get_staff_tree():
-    try:
-        staffs = db.session.query(Staff).order_by(asc(Staff.id)).all()
-
-        return format_staff_tree(staffs, None)
-    except Exception as e:
-        logger.info(e)
-        return DataResponse().fail_response(500, "Có lỗi xảy ra!")
+    staffs = db.session.query(Staff).order_by(asc(Staff.id)).all()
+    return format_staff_tree(staffs, None)
 
 
 @router.get("/{staff_id}", response_model=DataResponse[StaffResponse])
 def get_staff(staff_id: int):
-    try:
-        result = db.session.query(Staff).filter_by(id=staff_id).first()
-        if not result:
-            return DataResponse().fail_response(404, "Không tìm thấy nhân viên!")
-        else:
-            return DataResponse().success_response(result)
-    except Exception as e:
-        logger.info(e)
-        return DataResponse().fail_response(500, "Có lỗi xảy ra!")
+    result = db.session.query(Staff).filter_by(id=staff_id).first()
+    if not result:
+        raise SaleServiceException(ExceptionType.SALE_NOT_FOUND)
+    else:
+        return DataResponse().success_response(result)
 
 
 # @router.post("/", response_model=StaffResponse)
@@ -78,106 +70,90 @@ def get_staff(staff_id: int):
 
 @router.put("/{staff_id}", response_model=ResponseSchemaBase)
 def update_staff(staff_id: int, staff: StaffRequest):
-    try:
-        staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
-        if not staff_db:
-            return ResponseSchemaBase().fail_response(404, "Không tìm thấy nhân viên!")
+    staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
+    if not staff_db:
+        raise SaleServiceException(ExceptionType.SALE_NOT_FOUND)
 
-        staff_db.status = staff.status
-        staff_db.alias = staff.alias
+    staff_db.status = staff.status
+    staff_db.alias = staff.alias
 
-        db.session.commit()
-        return ResponseSchemaBase().success_response()
-    except Exception as e:
-        logger.info(e)
-        return ResponseSchemaBase().fail_response(500, "Có lỗi xảy ra!")
+    db.session.commit()
+    return ResponseSchemaBase().success_response()
 
 
 @router.put("/{staff_id}/parent/{parent_id}", response_model=ResponseSchemaBase)
 def update_staff_parent(staff_id: int, parent_id: int):
-    try:
-        staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
-        if not staff_db:
-            return ResponseSchemaBase().fail_response(404, "Không tìm thấy nhân viên!")
+    staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
+    if not staff_db:
+        raise SaleServiceException(ExceptionType.SALE_NOT_FOUND)
 
-        parent_db = db.session.query(Staff).filter_by(id=parent_id).first()
-        if not parent_db:
-            return ResponseSchemaBase().fail_response(404, "Không tìm thấy nhân viên cấp trên !")
+    parent_db = db.session.query(Staff).filter_by(id=parent_id).first()
+    if not parent_db:
+        raise SaleServiceException(http_code=400, code='400', message='Không tìm thấy nhân viên cấp trên')
 
-        staff_children_id = get_staff_children_id([staff_id])
-        if parent_id in staff_children_id:
-            return ResponseSchemaBase().fail_response(400, "Không thể gán nhân viên cấp trên vì tạo thành chu trình")
+    staff_children_id = get_staff_children_id([staff_id])
+    if parent_id in staff_children_id:
+        raise SaleServiceException(http_code=400, code='400',
+                                   message='Không thể gán nhân viên cấp trên vì tạo thành chu trình')
 
-        staff_db.parent = parent_db
-        db.session.commit()
-        return ResponseSchemaBase().success_response()
-    except Exception as e:
-        logger.info(e)
-        return ResponseSchemaBase().fail_response(500, "Có lỗi xảy ra!")
+    staff_db.parent = parent_db
+    db.session.commit()
+    return ResponseSchemaBase().success_response()
 
 
 @router.put("/{staff_id}/staff-children", response_model=ResponseSchemaBase)
 def update_staff_children(staff_children_id: List[int], staff_id: int):
-    try:
-        staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
-        if not staff_db:
-            return ResponseSchemaBase().fail_response(404, "Không tìm thấy nhân viên!")
+    staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
+    if not staff_db:
+        raise SaleServiceException(ExceptionType.SALE_NOT_FOUND)
 
-        if not staff_children_id:
-            return ResponseSchemaBase().fail_response(400, "Danh sách nhân viên cấp dưới không được rỗng!")
+    if not staff_children_id:
+        raise SaleServiceException(http_code=400, code='400',
+                                   message='Danh sách nhân viên cấp dưới không được rỗng')
 
-        children_db = db.session.query(Staff).filter(Staff.id.in_(staff_children_id))
-        if children_db.count() != len(staff_children_id):
-            return ResponseSchemaBase().fail_response(404, "Không tìm thấy 1 hoặc nhiều nhân viên cấp dưới!")
+    children_db = db.session.query(Staff).filter(Staff.id.in_(staff_children_id))
+    if children_db.count() != len(staff_children_id):
+        raise SaleServiceException(http_code=400, code='400',
+                                   message='Không tìm thấy 1 hoặc nhiều nhân viên cấp dưới')
 
-        staff_children_id_check = get_staff_children_id(staff_children_id)
+    staff_children_id_check = get_staff_children_id(staff_children_id)
 
-        if staff_id in staff_children_id_check:
-            return ResponseSchemaBase().fail_response(400, "Không thể gán nhân viên cấp dưới vì tạo thành chu trình")
+    if staff_id in staff_children_id_check:
+        raise SaleServiceException(http_code=400, code='400',
+                                   message='Không thể gán nhân viên cấp dưới vì tạo thành chu trình')
 
-        children_db.update(
-            {Staff.parent_id: staff_id},
-            synchronize_session=False
-        )
-        db.session.commit()
-        return ResponseSchemaBase().success_response()
-    except Exception as e:
-        logger.info(e)
-        return ResponseSchemaBase().fail_response(500, "Có lỗi xảy ra!")
+    children_db.update(
+        {Staff.parent_id: staff_id},
+        synchronize_session=False
+    )
+    db.session.commit()
+    return ResponseSchemaBase().success_response()
 
 
 @router.get("/{staff_id}/staff-children", response_model=DataResponse[List[StaffResponse]])
 def get_staff_children(staff_id: int):
-    try:
-        staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
-        if not staff_db:
-            return DataResponse().fail_response(404, 'Không tìm thấy nhân viên!')
+    staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
+    if not staff_db:
+        raise SaleServiceException(ExceptionType.SALE_NOT_FOUND)
 
-        staff_ids = get_staff_children_id([staff_id])
+    staff_ids = get_staff_children_id([staff_id])
 
-        staffs = db.session.query(Staff).filter(Staff.id.in_(staff_ids)).order_by(asc(Staff.id)).all()
+    staffs = db.session.query(Staff).filter(Staff.id.in_(staff_ids)).order_by(asc(Staff.id)).all()
 
-        return DataResponse().success_response(staffs)
-    except Exception as e:
-        logger.info(e)
-        return DataResponse().fail_response(500, "Có lỗi xảy ra!")
+    return DataResponse().success_response(staffs)
 
 
 @router.get("/{staff_id}/staff-children-tree", response_model=DataResponse[StaffTreeResponse])
 def get_tree_staff_children(staff_id: int):
-    try:
-        staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
-        if not staff_db:
-            return DataResponse().fail_response(404, 'Không tìm thấy nhân viên!')
+    staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
+    if not staff_db:
+        raise SaleServiceException(ExceptionType.SALE_NOT_FOUND)
 
-        staff_ids = get_staff_children_id([staff_id])
+    staff_ids = get_staff_children_id([staff_id])
 
-        staffs = db.session.query(Staff).filter(Staff.id.in_(staff_ids)).order_by(asc(Staff.parent_id), asc(Staff.id)).all()
+    staffs = db.session.query(Staff).filter(Staff.id.in_(staff_ids)).order_by(asc(Staff.parent_id), asc(Staff.id)).all()
 
-        return format_staff_tree(staffs, staff_id)
-    except Exception as e:
-        logger.info(e)
-        return DataResponse().fail_response(500, "Có lỗi xảy ra!")
+    return format_staff_tree(staffs, staff_id)
 
 
 def get_staff_children_id(staff_ids: List[int]):
