@@ -54,7 +54,7 @@ async def fastapi_error_handler(request, exc):
 def get_message_validation(exc):
     message = ""
     for error in exc.errors():
-        message += "/'" + error.get("loc")[1] + "'/" + ': ' + error.get("msg") + ", "
+        message += "/'" + str(error.get("loc")[1]) + "'/" + ': ' + error.get("msg") + ", "
 
     message = message[:-2]
 
