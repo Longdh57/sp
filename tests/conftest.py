@@ -5,7 +5,7 @@ from datetime import datetime
 from operator import itemgetter
 from docstring_parser import parse
 from app.main import get_application
-from app.models.base_model import Base  # noqa
+from app.models.base_model import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from typing import Any, Generator
@@ -14,10 +14,11 @@ from fastapi.testclient import TestClient
 from app.db.base_class import get_db
 from fastapi_sqlalchemy import DBSessionMiddleware
 from dotenv import load_dotenv
+
 load_dotenv(verbose=True)
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-# SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/sale_service_local_test"
+# SQLALCHEMY_DATABASE_URL = 'postgresql+psycopg2://sale_service_user:secret123@localhost:5432/sale_service_testing'
 # SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://postgres:postgres@localhost:5432/sale_service_local_test"
 
 engine = create_engine(
