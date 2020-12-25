@@ -92,7 +92,7 @@ def update_staff_parent(staff_id: int, parent_id: int):
 
     parent_db = db.session.query(Staff).filter_by(id=parent_id).first()
     if not parent_db:
-        raise SaleServiceException(http_code=400, code='400', message='Không tìm thấy nhân viên cấp trên')
+        raise SaleServiceException(http_code=404, code='404', message='Không tìm thấy nhân viên cấp trên')
 
     staff_children_id = get_staff_children_id([staff_id])
     if parent_id in staff_children_id:
@@ -116,7 +116,7 @@ def update_staff_children(staff_children_id: List[int], staff_id: int):
 
     children_db = db.session.query(Staff).filter(Staff.id.in_(staff_children_id))
     if children_db.count() != len(staff_children_id):
-        raise SaleServiceException(http_code=400, code='400',
+        raise SaleServiceException(http_code=404, code='404',
                                    message='Không tìm thấy 1 hoặc nhiều nhân viên cấp dưới')
 
     staff_children_id_check = get_staff_children_id(staff_children_id)
