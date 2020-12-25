@@ -1,9 +1,9 @@
 from app.core.config import settings
 from app.models.staff import Staff
 from app.helpers.enums import StaffStatus
-from app.tests.conftest import TestClient
+from tests.conftest import TestClient
 from fastapi_sqlalchemy import db
-from app.tests.api.api_v1 import APITestCase
+from tests.api.api_v1 import APITestCase
 
 
 class TestStaff(APITestCase):
