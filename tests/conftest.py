@@ -17,12 +17,13 @@ from dotenv import load_dotenv
 
 load_dotenv(verbose=True)
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-# SQLALCHEMY_DATABASE_URL = 'postgresql+psycopg2://sale_service_user:secret123@localhost:5432/sale_service_testing'
-# SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://postgres:postgres@localhost:5432/sale_service_local_test"
-
+SQLALCHEMY_DATABASE_URL = os.getenv('SQLALCHEMY_DATABASE_URL', '/tests')
+connect_args = {}
+if SQLALCHEMY_DATABASE_URL[:6] == 'sqlite':
+    connect_args['check_same_thread'] = False
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={'check_same_thread': False}
+    SQLALCHEMY_DATABASE_URL,
+    connect_args=connect_args
 )
 
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -116,10 +117,10 @@ class JiraTestService:
 
 def jira_test_service():
     return JiraTestService({
-        'url': os.getenv('JIRA_URL'),
-        'user': os.getenv('JIRA_USER'),
-        'password': os.getenv('JIRA_PASSWORD'),
-        'project_key': os.getenv('JIRA_PROJECT_KEY')
+        'url': os.getenv('JIRA_URL', '/tests'),
+        'user': os.getenv('JIRA_USER', '/tests'),
+        'password': os.getenv('JIRA_PASSWORD', '/tests'),
+        'project_key': os.getenv('JIRA_PROJECT_KEY', '/tests')
     })
 
 
