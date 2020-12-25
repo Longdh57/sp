@@ -27,7 +27,7 @@ def get_staffs(params: PaginationParams = Depends(), email: str = None, phone: s
         query = query.filter(Staff.email.like("%{}%".format(email)))
     if phone:
         query = query.filter(Staff.mobile.like("%{}%".format(phone)))
-    if status:
+    if status or status == 0:
         if status != -1 and status != 1:
             raise SaleServiceException(ExceptionType.STAFF_STATUS_INVALID)
         else:
@@ -73,6 +73,9 @@ def update_staff(staff_id: int, staff: StaffRequest):
     staff_db = db.session.query(Staff).filter_by(id=staff_id).first()
     if not staff_db:
         raise SaleServiceException(ExceptionType.SALE_NOT_FOUND)
+
+    if not staff.status or (staff.status != -1 and staff.status != 1):
+        raise SaleServiceException(ExceptionType.STAFF_STATUS_INVALID)
 
     staff_db.status = staff.status
     staff_db.alias = staff.alias
