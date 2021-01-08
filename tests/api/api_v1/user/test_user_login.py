@@ -29,9 +29,8 @@ class TestUser(APITestCase):
         })
         assert r.status_code == 200
         response = r.json()
-        assert response['code'] == '000'
-        assert response['data']['access_token'] is not None
-        assert response['data']['token_type'] == 'bearer'
+        assert response['access_token'] is not None
+        assert response['token_type'] == 'bearer'
 
     def test_user_login_with_wrong_password(self, client: TestClient):
         """
@@ -46,7 +45,7 @@ class TestUser(APITestCase):
         current_user: User = fake.user({'password': 'secret123'})
         r = client.post(f"{settings.API_PREFIX}/login", data={
             'username': current_user.email,
-            'password': 'secret1234'
+            'password': 'secret1234'    # khac voi password khoi tao User la secret123
         })
         assert r.status_code == 400
         response = r.json()
