@@ -73,3 +73,6 @@ celerybeat-schedule
 # virtualenv
 .venv/*
 venv/*
+
+# docker local data
+.docker/minio
