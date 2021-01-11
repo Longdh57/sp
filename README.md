@@ -32,26 +32,26 @@ $ docker-compose ps                 # Show all docker service
 ## Feature
 
 ### Sale service
-    - Danh sách staff
+    Danh sách staff
     - [ ] Synchronize staff
     - [ ] API staff list
-    - Authen
-    - [ ] Login with account/pass
+    Authen
+    - [x] Login with account/pass
     - [ ] Login via Google Oauth
-    - Authorization
+    Authorization
     - [ ] Mapping user-staff
     - [ ] Auto grant permission for staff
-    - Mapping staff-shop
+    Mapping staff-shop
     - [ ] Import staff-shop
     - [ ] List shop with staff
 
 ### Manage Sale-Jobs
-    - Danh sách Sale-Job
+    Danh sách Sale-Job
     - [ ] CRUD job
-    - Gán job cho sale
+    Gán job cho sale
     - [ ] Import sale job
-    - Form submit job
+    Form submit job
     - [ ] CRUD form submit job
-    - Notification
+    Notification
     - [ ] Push noti when grant shop for sale
     - [ ] Push noti when job expired date
