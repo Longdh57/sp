@@ -19,14 +19,19 @@ $ alembic upgrade head              # Upgrade head migration
 ## Docker Compose
 Cần cấu hình docker compose để sử dụng các service:
 - Minio: Upload file...
+- RabbitMQ: Handle change of jobs status
 ### Minio
 - Check cấu hình minio (MINIO_PORT, MINIO_URL, MINIO_ACCESS_KEY, MINIO_SECRET_KEY) trong .env
 - Mặc định dữ liệu trong minio đồng bộ với local ở path .docker/minio
+### RabbitMQ
+- Check cấu hình RabbitMQ (RABBITMQ_USER, RABBITMQ_PASS, RABBITMQ_PORT, RABBITMQ_MANAGEMENT_PORT) trong .env
+- Mặc định dữ liệu trong rabbitmq đồng bộ với local ở .docker/rabbitmq
 ### Run docker compose
 ```
 $ docker-compose up -d              # Run all docker service/container
 $ docker-compose down               # Stop all docker service
 $ docker-compose ps                 # Show all docker service
+$ docker-compose logs               # Show all docker service logs
 ```
 
 ## Feature

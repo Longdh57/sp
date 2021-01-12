@@ -44,3 +44,14 @@ services:
     depends_on:
       - minio1
       - minio2
+
+  rabbitmq:
+    image: rabbitmq:3.8.9-management
+    volumes:
+      - .docker/rabbitmq:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "${RABBITMQ_PORT}:${RABBITMQ_PORT}"
+      - "${RABBITMQ_MANAGEMENT_PORT}:${RABBITMQ_MANAGEMENT_PORT}"

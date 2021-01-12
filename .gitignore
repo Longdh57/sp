@@ -76,3 +76,4 @@ venv/*
 
 # docker local data
 .docker/minio
+.docker/rabbitmq
