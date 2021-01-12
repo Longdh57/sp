@@ -1,3 +1,4 @@
+import logging
 import sys
 import uvicorn
 from fastapi import FastAPI
@@ -11,8 +12,10 @@ from app.db.base_class import engine
 from app.core.config import settings
 from app.api.api import router
 from app.models.base_model import Base
-from app.utils.exception_handler import SaleServiceException, sale_service_exception_handler, http_exception_handler, validation_exception_handler, fastapi_error_handler
+from app.utils.exception_handler import SaleServiceException, sale_service_exception_handler, http_exception_handler, \
+    validation_exception_handler, fastapi_error_handler
 
+logging.config.fileConfig(settings.LOGGING_CONFIG_FILE, disable_existing_loggers=False)
 Base.metadata.create_all(bind=engine)
 
 
